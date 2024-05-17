@@ -13,7 +13,18 @@ from random import choice
 from re import search
 from string import ascii_letters
 from time import time
-from typing import Annotated, Any, Callable, Dict, List, Optional, Self, Tuple, Union
+from typing import (
+    Annotated,
+    Any,
+    Callable,
+    Dict,
+    Iterable,
+    List,
+    Optional,
+    Self,
+    Tuple,
+    Union,
+)
 from urllib.parse import quote
 
 from pydantic import Field, StrictBool, StrictInt, StrictStr
@@ -416,7 +427,7 @@ class SearchClient:
     async def chunked_batch(
         self,
         index_name: str,
-        objects: List[Dict[str, Any]],
+        objects: Iterable[Dict[str, Any]],
         action: Action = "addObject",
         wait_for_tasks: bool = False,
         batch_size: int = 1000,
@@ -429,7 +440,7 @@ class SearchClient:
         responses: List[BatchResponse] = []
         for i, obj in enumerate(objects):
             requests.append(BatchRequest(action=action, body=obj))
-            if i % batch_size == 0:
+            if len(requests) == batch_size or i == len(objects) - 1:
                 responses.append(
                     await self.batch(
                         index_name=index_name,
@@ -448,7 +459,7 @@ class SearchClient:
     async def replace_all_objects(
         self,
         index_name: str,
-        objects: List[Dict[str, Any]],
+        objects: Iterable[Dict[str, Any]],
         batch_size: int = 1000,
         request_options: Optional[Union[dict, RequestOptions]] = None,
     ) -> List[ApiResponse[str]]:
